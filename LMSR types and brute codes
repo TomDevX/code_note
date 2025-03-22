@@ -1,0 +1,369 @@
+Những bạn đã làm bài tập LMSR: https://codeforces.com/blog/entry/90035
+	1. Trần Hoàng Quân
+	2. Trần Đại Khang
+    3. Trần Minh Hoàng
+    4. Trần Huy Hoàng
+	5. Lư Diệp Thành
+    6. Nguyễn Thành Nhân
+    7. Nguyễn Triệu Cao Phong
+    8. Phan Phước Bảo Ngân
+
+Các kĩ thuật giải bài LMSR
+	Trâu:   Ý tưởng mấy em phải luôn có khi giải bài xâu, triển khai được đúng ý, thì có thể nhìn ra quy luật của nó
+    Hash:   Gần như chắc chắn (80-90%) ăn điểm mấy bài mà mình trâu cho xâu được, thậm chí ăn được mấy sub
+    Sqrt:   Cải thiện tốc độ chạy cho nhiều bài trâu, cả về xâu, và vẫn có thể ăn được mấy sub nhỏ, đôi khi lại là thuật chuẩn
+    KMP:    Nhìn được cấu trúc quy luật của xâu để triển khai DP tính bảng và biết cách truy vết và truy vấn thì ăn tuyệt đối bài xâu
+    Lyndon: Là thuật giải đầu tiên O(n) được công bố trong paper cho duy nhất mấy bài dạng xâu vòng như LMSR
+    SArr:	Là thuật cơ bản nhất trong 3 anh em (SArr, SAut, STree) nhưng vẫn xử lí được những bài xâu liên quan tới hậu tố
+    SAut:   Là thuật code ngắn, gọn nhất trong 3 anh em (SArr, SAut, STree) và xử lí được nhiều tác vụ đặc biệt cho mấy bài Finite Automata
+    STree:  Là cấu trúc mạnh nhất, đặc biệt nhất trong 3 anh em (SArr, SAut, STree) nhưng lại hằng số cao, cài dài, tốn thời gian
+	Tournament: Là thuật đặc biệt dành cho những bài mà mấy em đưa về quy luật trò chơi được, nhưng ko phải dạng greedy thông thường hay là heuristic.
+
+  
+      
+Không nên dùng <bits/stdc++.h> với using namespace std;
+
+	Thư viện mà được wrap trong namespace std;
+		C-impl			C++ wrapper inside namespace std;
+		-------------------------
+        <assert.h> 	với <cassert>
+        <errno.h> 	với <cerrno>
+        <fenv.h> 	với <cfenv>
+        <float.h>   với <cfloat>
+        <limits.h>  với <climits>
+        <signal.h>  với <csignal>
+        <string.h>  với <cstring>
+        <stdlib.h>  với <cstdlib>
+        <time.h>    với <ctime>
+        .........................
+        <math.h> 	với <cmath>
+        <stddef.h>  với <cstddef>
+        .........................
+        CÓ			với KHÔNG
+        KHÔNG		với CÓ
+        CÓ			với PARTIAL CÓ
+        PARTIAL CÓ  với CÓ
+        KHÔNG		với PARTIAL CÓ
+        PARTIAL CÓ	với KHÔNG
+    	NSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE
+	
+    https://en.cppreference.com/w/cpp/freestanding 
+    	"The kind of the implementation is implementation-defined" == COMPILER DEPENDENT / ENVIRONMENT DEPENDENT
+        Chưa kể mấy thuật magic = Vendor Support
+    	<cstddef>								<concepts>
+        <cstdlib>								<cerrno>
+        <cfloat>								<system_error>
+        <climits>								<memory>
+        <limits>								<type_traits>
+        <version>								<ratio>
+        <cstdint>								<utility>
+       	<new>									<tuple>
+        <typeinfo>								<functional>
+        <source_location>						<charconv>
+        <exception>								<bit>
+        <initializer_list>						<string>
+        <compare>								<cstring>
+        <coroutine>								<wchar>
+        <cstdarg>								<char>
+        <debugging> 							<iterator>
+        <ranges>								<ciso646>								
+        <atomic>								<cstdalign>
+        <cmath>									<cstdbool>
+    	NSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE
+        
+    String
+    	<cctype>
+        <cstring>
+        <cstdlib>
+        <iostream>
+        <string>
+        <sstream>
+        <string_view>
+        <string.h>
+        <charconv>
+        <cuchar>
+        <cwchar>
+        <uchar.h>
+        <wchar.h>
+        <char>
+        <wchar>	
+    	NSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE
+        
+    String Problem:
+		Localization: 123.456,789 hay 123,456.789
+          			  00AM, 12AM, 00PM, 12PM			0h = 00AM và 00PM, 12h = 12AM, 24h = 12PM
+        			  UTC+7h30
+        Encoding: UTF8 Unicode, ASCII, Extended ASCII (Compiler-Specific), ... 
+        Escaping Character:
+		Trigraph:
+    	NSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE
+        
+        
+    <bits/stdc++.h>
+    	x1, x2, xn
+        y1, y2, yn
+        data
+
+Comment:         
+            DO KHÁC COMPILER ):<
+    --> Khác hệ code (1 cái của c++, còn lại của c) | freestanding chỉ xuất hiện trong c++ mới (hoặc chỉ xuất hiện trong một số đời, máy nhất định) hơn hoặc đang trong phát triển
+  => Thư viện C++ cung cấp được nhiều kiểu dữ liệu, an toàn và linh hoạt hơn 
+    -->có các tính năng mà thư viện còn lại ko có hoặc một cái của C một cái C++
+    -->có một số cái chỉ hỗ trợ cho C++ hoặc mấy cái chỉ hỗ trợ cho C
+	math.h: Các hàm không nằm trong namespace, ví dụ: sqrt(), pow(),...
+	còn cmath năm trong namespace ::std, ví dụ: std::sqrt(), std::pow(),...
+
+Bao nhiêu bạn biết std::string::erase(...) làm gì ?
+  
+	1. Trần Hoàng Quân: xoá từ vị trí i đến i + n hoặc chỉ xoá mỗi i, nhận index hoa
+	2. Trần Đại Khang:xóa kí tự của string từ vị trí mình đặt và theo ch
+    3. Trần Minh Hoàng: Xóa kí tự string
+    4. Trần Huy Hoàng: 
+	5. Lư Diệp Thành: xóa 
+    6. Nguyễn Thành Nhân: xóa các phần tử của xâu từ vị trí pos đến cuối
+    7. Nguyễn Triệu Cao Phong: loại bỏ các phần của chuỗi, xâu
+    8. Phan Phước Bảo Ngân:
+
+TOP:
+	1. Đại Khang 100%
+    2. Hoàng Quân 90%
+    3. Huy Hoàng 75%
+    4. Diệp Thành 56%
+    5. Thành Nhân 0%
+      
+================================================================
+A) Đọc hiểu đề
+B) Trình bày ý tưởng giải LMSR
+C) Code
+D) Nhận xét từ SPy
+E) Rút kinh nghiệm
+================================================================
+1#Trần Hoàng Quân
+A) SPOJ - đảo string liên tục (phần tử đầu ra phần tử cuối) để tìm ra số lần đảo để tìm được xâu có thứ tự từ điển từ thấp --> cao
+B) Đặt string good là xâu có thứ tự từ điển từ thấp đến cao nhiều nhất sau i lần đảo, biến cnt lưu số đếm lần đảo để tìm được kết quả như đề yêu cầu
+C) CODE:
+int main(){
+  string s;
+  cin >> s;
+  string good = s;
+  int cnt = 0, n = s.size();
+  for(int i = 0; i < n; i++){
+    rotate(s.begin(), s.begin()+1, s.end());
+    if(s < good){
+      good = s; // O(n)
+      cnt = i;
+    }
+  }
+  cout << cnt;
+  return 0;
+}
+D) Nhận xét: 
+	+ Trâu như này tốt, tận dụng rotate để Inplace Rotation, chỉ cập nhật kết quả khi cần
+    + Nhưng bài này không có quy luật dạng s_new <- s_old, nên khó nhìn ý tưởng
+    + Suggest: Tách ra khỏi vòng for i, thì dễ nhìn thấy cái cách nó so sánh hơn
+        int min_cyc(string s)
+        {
+            int n = s.size();
+            s += s;
+
+            int t = 0;
+            for (int i = 1; i < n; ++i)
+                if (s.substr(i, n) < s.substr(t, n))
+                    t = i;
+
+            return t;
+        }
+================================================================
+2#Trần Đại Khang 
+A) CSES -> xoay string: lấy một xâu đầu và đặt ra cuối rồi so sánh với xâu tốt nhất
+B) Tạo xâu res = s là lưu xâu lớn nhất được xoay khi đó liên tục lấy phần đầu của xâu hiện tại bỏ vào cuối và so sánh hai cái cái nào lớn hơn thì thế vào res. ĐPT O(N2).
+C) CODE: 
+#include <bits/stdc++.h>
+using namespace std;
+int main() {
+    ios_base::sync_with_stdio(0);cin.tie(0);cout.tie(0);
+    string s,res;
+    cin>>s;
+    res = s;
+    for (int i = 1; i <s.size(); i++) {
+        s =s.substr(1) + s[0];
+        if (s < res) res = s;
+    }
+    cout<<res;
+}
+D) Nhận xét:
+	+ Đừng có dùng <bits/stdc++.h> với using namespace std;
+	+ Trâu như này tốt
+    + Nhưng mà cách xoay xâu chưa được ổn, vì nó sẽ tạo vùng nhớ mới (trừ khi compiler đủ thông minh, nhưng khó vì dạng hơi phức tạp)
+    + Suggest: Là thay bằng std::rotate để được hiệu quả
+    + Suggest: Hoặc, sử dụng `s = s + s;` để tạo ra xâu vòng
+================================================================
+3#Trần Minh Hoàng
+A)SPOJ Tìm số  lần xoay xâu với mỗi lần xoay là kí tự đầu đặt ra kí tự cuối để tìm ra xâu có thứ tự từ điển nhỏ nhất
+B) Trâu
+	for từ 0 đến n-1: 
+mỗi lần kiểm tra xem có phải đây là xâu nhỏ nhất nhỏ nhất từ trc tới h hay chx
+nếu đúng thì cập nhật i
+xóa đi kí tự đầu của xâu và thêm vào cuối xâu
+#include <bits/stdc++.h>
+using namespace std;
+int main(){
+  ios_base::sync_with_stdio(false);
+  cin.tie(0);cout.tie(0);
+  string s,mins;
+  long long kq;
+  getline(cin,s);
+  mins=s;
+  for(long long i=1;i<s.size();i++){
+    char c=s[0];
+    s.erase(0,1);
+    s+=c;
+    if(s<mins){
+      kq=i;
+      mins=s;
+    }
+  }
+  cout<<kq;
+}
+D) Nhận xét:
+	+ Hạn chế dùng s.erase(), mà có dùng thì phải luôn check độ dài trước
+	+ Không nên dùng <bits/stdc++.h> với using namespace std;
+================================================================
+4#Trần Huy Hoàng
+A)CSES -> xoay chuỗi để tạo ra vòng xoay nhỏ nhất và tốt nhất theo thứ tự từ điển nhỏ nhất
+B) SPOJ -> nhân đôi chuỗi ban đầu để tạo một chuỗi dài gấp đôi, truy xuất vòng quay liên tiếp bằng cách lấy đoạn con bằng độ dài với độ dài so với chuỗi gốc. 
+Sau đó duyệt qua tất cả vòng xoay theo thứ tự từ điển và chọn ra vòng xoay nhỏ nhất làm kết quả
+C) CODE:
+#include<iostream>
+using namespace std;
+int fs(const string &s) {
+    int n = s.size();
+    string d = s + s;
+    int res = 0;
+
+    for (int i = 1; i < n; i++) {
+        bool small = false;
+        for (int j = 0; j < n; j++) {
+            if (d[i + j] < d[res + j]) {
+                small = true;
+                break;
+            }
+            if (d[i + j] > d[res + j]) {
+                break;
+            }
+        }
+        if (small) {
+            res = i;
+        }
+    }
+    return res + 1;
+}
+int main() {
+    ios::sync_with_stdio(0);
+    cin.tie(0);
+
+    int n;cin >> n;
+    while (n--) {
+        string s;cin >> s;
+        cout << fs(s) << "\n";
+    }
+
+    return 0;
+}
+
+D) Nhận xét:
+	+ Good, có xâu vòng (d = s + s), có kiểm tra rõ ràng, có break sớm, gọn, dùng sẹc n
+    + Lần sau nhớ chọn bài toán cho rõ ràng
+    + Suggest:
+		auto update = [&]() {
+            for (int j = 0; j < n; j++) {
+                if (d[i + j] < d[res + j]) {
+                    return true;
+                }
+                if (d[i + j] > d[res + j]) {
+                    return false;
+                }
+            }
+            return false;
+        };
+        if (update()) {
+            res = i;
+        }
+================================================================
+5#Lư Diệp Thành
+A) SPOJ tìm số lần xoay xâu (lây kí tự đầu đặt ra cuối) để có được xâu có thứ tự từ điển nhỏ nhất
+B) bruteforce: 
+	đặt minstr là xâu tốt nhất tìm đc
+    for i = 1 => n - 1, dùng hàm rotate để xoay mảng, nếu xâu vừa xoay < minstr, thì đặt minstr = s và cập nhật số lần quay = i
+C) bruteforce:
+int main()
+{
+    string s; cin >> s;
+    string minstr = s;
+    int minrotate = 0;
+    for (int i = 1; i < int(s.size()); i++)
+    {
+        rotate(s.begin(), s.begin() + 1, s.end());
+        if (s < minstr)
+        {
+            minstr = s;
+            minrotate = i;
+        }
+    }
+    cout << minrotate;
+    return 0;
+}
+D) Nhận xét:
+	+ Good, chạy từ 1, bỏ bớt bước kiểm tra thừa thãi
+	+ Y hệt nhận xét bạn quân
+================================================================
+6#Nguyễn Thành Nhân
+A) SPOJ: Đảo xâu (phần tử đàu ra cuối) để tìm ra xâu có kí tự từ thấp - cao
+B) Đặt tên xâu là một xâu (có thứ tự từ thấp - cao sau i lần đảo) biến dem lưu số lần đảo
+C)
+  string a;
+  void solve(){
+  cin >> a;
+  string b = a;
+  int dem = 0, n = a.size();
+  for(int i = 1; i <= n; i++){
+    rotate(b.begin(), , b.begin() + 1, b.end());
+    if(b < a){
+      a = b;
+      dem = i;
+    }
+ }
+    cout << dem << '\n';
+}
+D) Nhận xét:
+	+ Compiler Error ở chỗ rotate
+	+ Tách input, output ra khỏi hàm, đừng dùng dạng functional
+	+ Y hệt nhận xét bạn quân
+================================================================
+7#Nguyễn Triệu Cao Phong
+A) CSES: 
+B)tạo tất cả xâu xoay của xâu đầu, sắp chếp các xâu xoay theo thứ tự từ điển, kiếm xâu nhỏ nhất
+C) -->
+#include <bits/stdc++.h>
+typedef long long ll;
+using namespace std;
+
+signed main() {
+    string s; cin >> s;
+    ll l = s.size();
+    vector<string> cachquay;
+    for (ll i=0; i<l; i++) {
+        cachquay.push_back(s.substr(i)+s.substr(0, i));
+    }
+    sort(cachquay.begin(), cachquay.end());
+    cout << cachquay[0] << '\n';
+    return 0;
+}
+D) Nhận xét:
+	+ Đừng có dùng <bits/stdc++.h> với using namespace std;
+	+ Đừng có cast size_t sang long long (thứ nhất size_t là kiểu unsign, thứ hai là lãng phí bộ nhớ và chậm hơn)
+    + For bằng long long một cách không cần thiết
+    + Tạo rất nhiều xâu mà không sử dụng
+    + Thay vì dùng std::sort(), có thể dùng std::nth_element(), std::min_element(), std::max_element()
+
+================================================================
